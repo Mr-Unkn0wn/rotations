@@ -4,6 +4,7 @@ use crate::{common_colors::*, court::Court};
 
 const RADIUS: f32 = 50.0;
 
+#[derive(Clone, Copy)]
 pub enum Roles {
     Outside,
     Middle,

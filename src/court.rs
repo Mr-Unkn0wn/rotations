@@ -17,10 +17,10 @@ const NUMBERS_ON_COURT: [Vec2; 6] = [ONE, TWO, THREE, FOUR, FIVE, SIX];
 pub struct Court {
     pos: Vec2,
     size: f32,
-    _rotation: u8,
+    rotation: u8,
     players: [[Player; 3]; 2],
     clicked_player_index: Option<(usize, usize)>,
-    _positions_on_court: [Vec2; 6],
+    positions_on_court: [Vec2; 6],
 }
 
 // CONSTRUCTOR, GETTERS AND SETTERS
@@ -65,10 +65,10 @@ impl Court {
         Court {
             pos,
             size,
-            _rotation: 1,
+            rotation: 1,
             players,
             clicked_player_index: None,
-            _positions_on_court: positions_on_court,
+            positions_on_court,
         }
     }
 
@@ -78,17 +78,47 @@ impl Court {
     pub fn get_size(&self) -> f32 {
         self.size
     }
-    pub fn _get_rotation(&self) -> u8 {
-        self._rotation
+    pub fn get_rotation(&self) -> u8 {
+        self.rotation
     }
-    pub fn _set_rotation(&self) {
-        //todo
+    pub fn set_rotation(&mut self, rotation: u8) {
+        self.rotation = rotation;
+        self.create_player_array();
+    }
+
+    fn create_player_array(&mut self) {
+        let role_order = [Roles::Setter, Roles::Outside, Roles::Middle, Roles::Diagonal, Roles::Outside, Roles::Middle];
+
+        for (position, role) in role_order.iter().enumerate() {
+            let mut number = self.rotation + position as u8;
+            if number > 6 {
+                number %= 6;
+            }
+
+            let index = Self::position_to_index(number);
+            self.players[index.1][index.0] = Player {
+                role: *role,
+                pos: self.positions_on_court[number as usize - 1],
+            }
+        }
+    }
+
+    fn position_to_index(position: u8) -> (usize, usize) {
+        match position {
+            1 => (2, 1),
+            2 => (2, 0),
+            3 => (1, 0),
+            4 => (0, 0),
+            5 => (0, 1),
+            6 => (1, 1),
+            _ => panic!("Invalid position"),
+        }
     }
 }
 
 // DRAW METHODS
 impl Court {
-    pub fn draw_court(&self) {
+    pub fn draw_court(&mut self) {
         self.draw_court_manually();
     }
 
