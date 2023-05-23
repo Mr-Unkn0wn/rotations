@@ -15,7 +15,6 @@ const ONE: Vec2 = Vec2::new(8.0, 6.0);
 const NUMBERS_ON_COURT: [Vec2; 6] = [ONE, TWO, THREE, FOUR, FIVE, SIX];
 
 pub struct Court {
-    img: Texture2D,
     pub pos: Vec2,
     pub size: Vec2,
     pub rotation: u8,
@@ -25,19 +24,6 @@ pub struct Court {
 
 impl Court {
     pub fn new(pos: Vec2, size: f32) -> Self {
-        let bytes = include_bytes!("court.png");
-
-        let img = Image::from_file_with_format(bytes, Some(ImageFormat::Png));
-
-        let img = img.sub_image(Rect {
-            x: 0.0,
-            y: (img.height / 2) as f32,
-            w: img.width as f32,
-            h: (img.height / 2) as f32,
-        });
-
-        let img = Texture2D::from_image(&img);
-
         let players = [
             [
                 Player {
@@ -70,7 +56,6 @@ impl Court {
         ];
 
         Court {
-            img,
             pos,
             size: Vec2 { x: size, y: size },
             rotation: 1,
@@ -80,7 +65,6 @@ impl Court {
     }
 
     pub fn draw_court(&self) {
-        // draw_texture(self.img, 0.0, 0.0, WHITE);
         self.draw_court_manually();
     }
 
