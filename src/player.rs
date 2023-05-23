@@ -17,7 +17,7 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn draw_player(&self, pos: &Vec2, size: &Vec2) {
+    pub fn draw_player(&self, pos: &Vec2, size: &f32) {
         let x = Player::court_to_pixel_x(self.pos.x, pos, size);
         let y = Player::court_to_pixel_y(self.pos.y, pos, size);
         draw_circle(x, y, RADIUS, BLACK);
@@ -36,7 +36,7 @@ impl Player {
         draw_text(text, text_x, text_y, 20.0, BLACK);
     }
 
-    pub fn is_mouse_on_player(&self, mouse_pos: (f32, f32), pos: &Vec2, size: &Vec2) -> bool {
+    pub fn is_mouse_on_player(&self, mouse_pos: (f32, f32), pos: &Vec2, size: &f32) -> bool {
         let mouse_pos_vec = Vec2::new(mouse_pos.0, mouse_pos.1);
         let player_pos = Vec2::new(
             Player::court_to_pixel_x(self.pos.x, pos, size),
@@ -50,20 +50,20 @@ impl Player {
         }
     }
 
-    pub fn court_to_pixel_x(x: f32, pos: &Vec2, size: &Vec2) -> f32 {
-        pos.x + size.x * (x / 9.0)
+    pub fn court_to_pixel_x(x: f32, pos: &Vec2, size: &f32) -> f32 {
+        pos.x + size * (x / 9.0)
     }
 
-    pub fn court_to_pixel_y(y: f32, pos: &Vec2, size: &Vec2) -> f32 {
-        pos.y + size.y * (y / 9.0)
+    pub fn court_to_pixel_y(y: f32, pos: &Vec2, size: &f32) -> f32 {
+        pos.y + size * (y / 9.0)
     }
 
-    pub fn pixel_to_court_x(pos: &Vec2, size: &Vec2, x: f32) -> f32 {
-        (x - pos.x) / size.x * 9.0
+    pub fn pixel_to_court_x(pos: &Vec2, size: &f32, x: f32) -> f32 {
+        (x - pos.x) / size * 9.0
     }
 
-    pub fn pixel_to_court_y(pos: &Vec2, size: &Vec2, y: f32) -> f32 {
-        (y - pos.y) / size.y * 9.0
+    pub fn pixel_to_court_y(pos: &Vec2, size: &f32, y: f32) -> f32 {
+        (y - pos.y) / size * 9.0
     }
 
     pub fn is_pos_legal(

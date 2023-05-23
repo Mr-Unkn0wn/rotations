@@ -16,7 +16,7 @@ const NUMBERS_ON_COURT: [Vec2; 6] = [ONE, TWO, THREE, FOUR, FIVE, SIX];
 
 pub struct Court {
     pub pos: Vec2,
-    pub size: Vec2,
+    pub size: f32,
     pub rotation: u8,
     players: [[Player; 3]; 2],
     clicked_player: Option<(i32, i32)>,
@@ -57,7 +57,7 @@ impl Court {
 
         Court {
             pos,
-            size: Vec2 { x: size, y: size },
+            size,
             rotation: 1,
             players,
             clicked_player: None,
@@ -74,28 +74,22 @@ impl Court {
 
         let field_color = Color::from_rgba(255, 145, 92, 255);
 
-        draw_rectangle(
-            self.pos.x,
-            self.pos.y,
-            self.size.x,
-            self.size.y,
-            field_color,
-        );
+        draw_rectangle(self.pos.x, self.pos.y, self.size, self.size, field_color);
 
         draw_rectangle_lines(
             self.pos.x,
             self.pos.y,
-            self.size.x,
-            self.size.y,
+            self.size,
+            self.size,
             thickness,
             common_colors::OFF_WHITE,
         );
 
         draw_line(
             self.pos.x,
-            self.pos.y + self.size.y / 3.0,
-            self.pos.x + self.size.x,
-            self.pos.y + self.size.y / 3.0,
+            self.pos.y + self.size / 3.0,
+            self.pos.x + self.size,
+            self.pos.y + self.size / 3.0,
             thickness / 2.0,
             line_color,
         );
