@@ -19,7 +19,7 @@ pub struct Court {
     size: f32,
     rotation: u8,
     players: [[Player; 3]; 2],
-    clicked_player: Option<(i32, i32)>,
+    clicked_player_index: Option<(i32, i32)>,
     positions_on_court: [Vec2; 6],
 }
 
@@ -82,7 +82,7 @@ impl Court {
             size,
             rotation: 1,
             players,
-            clicked_player: None,
+            clicked_player_index: None,
             positions_on_court,
         }
     }
@@ -99,14 +99,7 @@ impl Court {
 
         draw_rectangle(self.pos.x, self.pos.y, self.size, self.size, field_color);
 
-        draw_rectangle_lines(
-            self.pos.x,
-            self.pos.y,
-            self.size,
-            self.size,
-            thickness,
-            common_colors::OFF_WHITE,
-        );
+        draw_rectangle_lines(self.pos.x, self.pos.y, self.size, self.size, thickness, common_colors::OFF_WHITE);
 
         draw_line(
             self.pos.x,
@@ -132,67 +125,68 @@ impl Court {
         if is_mouse_button_down(MouseButton::Left) {
             let mouse_pos = mouse_position();
 
-            match self.clicked_player {
-                Some(p) => {
-                    let mut left = None;
-                    let mut right = None;
-                    let mut front = None;
-                    let mut behind = None;
+            match self.clicked_player_index {
+                Some(clicked_player_index) => {
+                    let surrounding = self.get_surrounding_players(clicked_player_index);
 
-                    if p.1 - 1 >= 0 {
-                        left = Some(self.players[p.0 as usize][(p.1 - 1) as usize].pos);
-                    }
-                    if p.1 + 1 < 3 {
-                        right = Some(self.players[p.0 as usize][(p.1 + 1) as usize].pos);
-                    }
-                    if p.0 - 1 >= 0 {
-                        front = Some(self.players[(p.0 - 1) as usize][p.1 as usize].pos);
-                    }
-                    if p.0 + 1 < 2 {
-                        behind = Some(self.players[(p.0 + 1) as usize][p.1 as usize].pos);
+                    if Player::is_pos_legal(mouse_pos.0, mouse_pos.1, surrounding, &self) {
+                        self.players[clicked_player_index.0 as usize][clicked_player_index.1 as usize].pos.x = mouse_pos.0;
+                        self.players[clicked_player_index.0 as usize][clicked_player_index.1 as usize].pos.y = mouse_pos.1;
                     }
 
-                    let surrounding = [left, right, front, behind];
-
-                    if Player::is_pos_legal(
-                        mouse_pos.0,
-                        mouse_pos.1,
-                        left,
-                        right,
-                        front,
-                        behind,
-                        &self,
-                    ) {
-                        self.players[p.0 as usize][p.1 as usize].pos.x = mouse_pos.0;
-                        self.players[p.0 as usize][p.1 as usize].pos.y = mouse_pos.1;
-                    }
-
-                    for teammate in surrounding {
-                        match teammate {
-                            Some(teammate) => draw_line(
-                                teammate.x,
-                                teammate.y,
-                                self.players[p.0 as usize][p.1 as usize].pos.x,
-                                self.players[p.0 as usize][p.1 as usize].pos.y,
-                                5.0,
-                                BLACK,
-                            ),
-                            None => (),
-                        }
-                    }
+                    self.draw_lines_to_surrounding(surrounding, clicked_player_index);
                 }
                 None => {
                     for (y, line) in self.players.iter().enumerate() {
                         for (x, player) in line.iter().enumerate() {
                             if player.is_mouse_on_player(mouse_pos) {
-                                self.clicked_player = Some((y as i32, x as i32));
+                                self.clicked_player_index = Some((y as i32, x as i32));
                             }
                         }
                     }
                 }
             }
         } else {
-            self.clicked_player = None;
+            self.clicked_player_index = None;
+        }
+    }
+
+    fn get_surrounding_players(&self, clicked_player_index: (i32, i32)) -> [Option<Vec2>; 4] {
+        let mut left = None;
+        let mut right = None;
+        let mut front = None;
+        let mut behind = None;
+
+        if clicked_player_index.1 - 1 >= 0 {
+            left = Some(self.players[clicked_player_index.0 as usize][(clicked_player_index.1 - 1) as usize].pos);
+        }
+        if clicked_player_index.1 + 1 < 3 {
+            right = Some(self.players[clicked_player_index.0 as usize][(clicked_player_index.1 + 1) as usize].pos);
+        }
+        if clicked_player_index.0 - 1 >= 0 {
+            front = Some(self.players[(clicked_player_index.0 - 1) as usize][clicked_player_index.1 as usize].pos);
+        }
+        if clicked_player_index.0 + 1 < 2 {
+            behind = Some(self.players[(clicked_player_index.0 + 1) as usize][clicked_player_index.1 as usize].pos);
+        }
+
+        let surrounding = [left, right, front, behind];
+        surrounding
+    }
+
+    fn draw_lines_to_surrounding(&self, surrounding: [Option<Vec2>; 4], clicked_player_index: (i32, i32)) {
+        for teammate in surrounding {
+            match teammate {
+                Some(teammate) => draw_line(
+                    teammate.x,
+                    teammate.y,
+                    self.players[clicked_player_index.0 as usize][clicked_player_index.1 as usize].pos.x,
+                    self.players[clicked_player_index.0 as usize][clicked_player_index.1 as usize].pos.y,
+                    5.0,
+                    BLACK,
+                ),
+                None => (),
+            }
         }
     }
 }

@@ -44,15 +44,7 @@ impl Player {
         }
     }
 
-    pub fn is_pos_legal(
-        x: f32,
-        y: f32,
-        left: Option<Vec2>,
-        right: Option<Vec2>,
-        front: Option<Vec2>,
-        behind: Option<Vec2>,
-        court: &Court,
-    ) -> bool {
+    pub fn is_pos_legal(x: f32, y: f32, surrounding: [Option<Vec2>; 4], court: &Court) -> bool {
         let min_dist = 0.9;
 
         if x < court.get_pos().x || x > court.get_pos().x + court.get_size() {
@@ -61,7 +53,7 @@ impl Player {
         if y < court.get_pos().y || y > court.get_pos().y + court.get_size() {
             return false;
         }
-        match left {
+        match surrounding[0] {
             Some(l) => {
                 if l.x >= x - min_dist {
                     return false;
@@ -69,7 +61,7 @@ impl Player {
             }
             None => (),
         }
-        match right {
+        match surrounding[1] {
             Some(r) => {
                 if r.x <= x + min_dist {
                     return false;
@@ -77,7 +69,7 @@ impl Player {
             }
             None => (),
         }
-        match front {
+        match surrounding[2] {
             Some(f) => {
                 if f.y >= y - min_dist {
                     return false;
@@ -85,7 +77,7 @@ impl Player {
             }
             None => (),
         }
-        match behind {
+        match surrounding[3] {
             Some(f) => {
                 if f.y <= y + min_dist {
                     return false;
