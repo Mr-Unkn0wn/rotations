@@ -15,42 +15,64 @@ const ONE: Vec2 = Vec2::new(8.0, 6.0);
 const NUMBERS_ON_COURT: [Vec2; 6] = [ONE, TWO, THREE, FOUR, FIVE, SIX];
 
 pub struct Court {
-    pub pos: Vec2,
-    pub size: f32,
-    pub rotation: u8,
+    pos: Vec2,
+    size: f32,
+    rotation: u8,
     players: [[Player; 3]; 2],
     clicked_player: Option<(i32, i32)>,
+    positions_on_court: [Vec2; 6],
+}
+
+// GETTERS AND SETTERS
+impl Court {
+    pub fn get_pos(&self) -> Vec2 {
+        self.pos
+    }
+    pub fn get_size(&self) -> f32 {
+        self.size
+    }
+    pub fn get_rotation(&self) -> u8 {
+        self.rotation
+    }
+    pub fn set_rotation(&self) {
+        //todo
+    }
 }
 
 impl Court {
     pub fn new(pos: Vec2, size: f32) -> Self {
+        let mut positions_on_court: [Vec2; 6] = [Vec2::new(0.0, 0.0); 6];
+        for (index, position) in NUMBERS_ON_COURT.iter().enumerate() {
+            positions_on_court[index] = pos + (*position / 9.0) * size;
+        }
+
         let players = [
             [
                 Player {
                     role: Roles::Diagonal,
-                    pos: FOUR,
+                    pos: positions_on_court[3],
                 },
                 Player {
                     role: Roles::Middle,
-                    pos: THREE,
+                    pos: positions_on_court[2],
                 },
                 Player {
                     role: Roles::Outside,
-                    pos: TWO,
+                    pos: positions_on_court[1],
                 },
             ],
             [
                 Player {
                     role: Roles::Outside,
-                    pos: FIVE,
+                    pos: positions_on_court[4],
                 },
                 Player {
                     role: Roles::Middle,
-                    pos: SIX,
+                    pos: positions_on_court[5],
                 },
                 Player {
                     role: Roles::Setter,
-                    pos: ONE,
+                    pos: positions_on_court[0],
                 },
             ],
         ];
@@ -61,6 +83,7 @@ impl Court {
             rotation: 1,
             players,
             clicked_player: None,
+            positions_on_court,
         }
     }
 
@@ -98,7 +121,7 @@ impl Court {
     pub fn draw_players(&self) {
         for line in &self.players {
             for player in line {
-                player.draw_player(&self.pos, &self.size);
+                player.draw_player();
             }
         }
     }
@@ -111,9 +134,6 @@ impl Court {
 
             match self.clicked_player {
                 Some(p) => {
-                    let x = Player::pixel_to_court_x(&self.pos, &self.size, mouse_pos.0);
-                    let y = Player::pixel_to_court_y(&self.pos, &self.size, mouse_pos.1);
-
                     let mut left = None;
                     let mut right = None;
                     let mut front = None;
@@ -133,31 +153,38 @@ impl Court {
                     }
 
                     let surrounding = [left, right, front, behind];
-                    let player = &mut self.players[p.0 as usize][p.1 as usize];
 
-                    for p in surrounding {
-                        match p {
-                            Some(l) => draw_line(
-                                Player::court_to_pixel_x(l.x, &self.pos, &self.size),
-                                Player::court_to_pixel_y(l.y, &self.pos, &self.size),
-                                Player::court_to_pixel_x(player.pos.x, &self.pos, &self.size),
-                                Player::court_to_pixel_y(player.pos.y, &self.pos, &self.size),
+                    if Player::is_pos_legal(
+                        mouse_pos.0,
+                        mouse_pos.1,
+                        left,
+                        right,
+                        front,
+                        behind,
+                        &self,
+                    ) {
+                        self.players[p.0 as usize][p.1 as usize].pos.x = mouse_pos.0;
+                        self.players[p.0 as usize][p.1 as usize].pos.y = mouse_pos.1;
+                    }
+
+                    for teammate in surrounding {
+                        match teammate {
+                            Some(teammate) => draw_line(
+                                teammate.x,
+                                teammate.y,
+                                self.players[p.0 as usize][p.1 as usize].pos.x,
+                                self.players[p.0 as usize][p.1 as usize].pos.y,
                                 5.0,
                                 BLACK,
                             ),
                             None => (),
                         }
                     }
-
-                    if Player::is_pos_legal(x, y, left, right, front, behind) {
-                        player.pos.x = x;
-                        player.pos.y = y;
-                    }
                 }
                 None => {
                     for (y, line) in self.players.iter().enumerate() {
                         for (x, player) in line.iter().enumerate() {
-                            if player.is_mouse_on_player(mouse_pos, &self.pos, &self.size) {
+                            if player.is_mouse_on_player(mouse_pos) {
                                 self.clicked_player = Some((y as i32, x as i32));
                             }
                         }
