@@ -3,6 +3,7 @@ use macroquad::prelude::*;
 use crate::{common_colors::*, court::Court};
 
 const RADIUS: f32 = 50.0;
+const MOVE_SPEED: f32 = 0.1; // per tick in meters
 
 #[derive(Clone, Copy)]
 pub enum Roles {
@@ -12,12 +13,33 @@ pub enum Roles {
     Setter,
 }
 
+#[derive(Clone, Copy)]
 pub struct Player {
     pub role: Roles,
     pub pos: Vec2,
+    pub target: Vec2,
 }
 
 impl Player {
+    pub fn new(role: Roles, pos: Vec2) -> Player {
+        Player { role, pos, target: pos }
+    }
+
+    pub fn move_player(&mut self, size: f32) {
+        let speed_in_px = size * (MOVE_SPEED / 9.0);
+        let mut direction = self.target - self.pos;
+
+        if direction.length() > speed_in_px {
+            direction = direction.normalize() * speed_in_px;
+        }
+
+        if direction.is_nan() {
+            return;
+        }
+
+        self.pos += direction;
+    }
+
     pub fn draw_player(&self) {
         draw_circle(self.pos.x, self.pos.y, RADIUS, BLACK);
         draw_circle(self.pos.x, self.pos.y, RADIUS - 4.0, OFF_WHITE);

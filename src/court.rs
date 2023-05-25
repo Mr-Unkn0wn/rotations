@@ -17,7 +17,7 @@ const NUMBERS_ON_COURT: [Vec2; 6] = [ONE, TWO, THREE, FOUR, FIVE, SIX];
 pub struct Court {
     pos: Vec2,
     size: f32,
-    rotation: u8,
+    rotation: i32,
     players: [[Player; 3]; 2],
     clicked_player_index: Option<(usize, usize)>,
     positions_on_court: [Vec2; 6],
@@ -33,32 +33,14 @@ impl Court {
 
         let players = [
             [
-                Player {
-                    role: Roles::Diagonal,
-                    pos: positions_on_court[3],
-                },
-                Player {
-                    role: Roles::Middle,
-                    pos: positions_on_court[2],
-                },
-                Player {
-                    role: Roles::Outside,
-                    pos: positions_on_court[1],
-                },
+                Player::new(Roles::Diagonal, positions_on_court[3]),
+                Player::new(Roles::Middle, positions_on_court[2]),
+                Player::new(Roles::Outside, positions_on_court[1]),
             ],
             [
-                Player {
-                    role: Roles::Outside,
-                    pos: positions_on_court[4],
-                },
-                Player {
-                    role: Roles::Middle,
-                    pos: positions_on_court[5],
-                },
-                Player {
-                    role: Roles::Setter,
-                    pos: positions_on_court[0],
-                },
+                Player::new(Roles::Outside, positions_on_court[4]),
+                Player::new(Roles::Middle, positions_on_court[5]),
+                Player::new(Roles::Setter, positions_on_court[0]),
             ],
         ];
 
@@ -78,32 +60,44 @@ impl Court {
     pub fn get_size(&self) -> f32 {
         self.size
     }
-    pub fn get_rotation(&self) -> u8 {
+    pub fn get_rotation(&self) -> i32 {
         self.rotation
     }
-    pub fn set_rotation(&mut self, rotation: u8) {
+    pub fn set_rotation(&mut self, rotation: i32) {
+        self.create_player_array(rotation);
         self.rotation = rotation;
-        self.create_player_array();
     }
 
-    fn create_player_array(&mut self) {
+    fn create_player_array(&mut self, new_rotation: i32) {
         let role_order = [Roles::Setter, Roles::Outside, Roles::Middle, Roles::Diagonal, Roles::Outside, Roles::Middle];
+        // 5 - 1 <- 1 - 1 = 2
+        // 1 <- 5 = 4
+        // (x - 1 + o) % 6 = y - 1
+        // y - 1 - x - 1 % 6 = o
+        let offset = ((self.rotation - 1) - (new_rotation - 1)).rem_euclid(6);
 
-        for (position, role) in role_order.iter().enumerate() {
-            let mut number = self.rotation + position as u8;
+        let mut players_backup = self.players.clone();
+
+        for (position, _role) in role_order.iter().enumerate() {
+            let mut number = new_rotation + position as i32;
             if number > 6 {
                 number %= 6;
             }
 
             let index = Self::position_to_index(number);
-            self.players[index.1][index.0] = Player {
-                role: *role,
-                pos: self.positions_on_court[number as usize - 1],
+
+            let mut old_number = number + offset;
+            if old_number > 6 {
+                old_number %= 6;
             }
+
+            let old_index = Self::position_to_index(old_number);
+            players_backup[old_index.1][old_index.0].target = self.positions_on_court[(number - 1) as usize];
+            self.players[index.1][index.0] = players_backup[old_index.1][old_index.0];
         }
     }
 
-    fn position_to_index(position: u8) -> (usize, usize) {
+    fn position_to_index(position: i32) -> (usize, usize) {
         match position {
             1 => (2, 1),
             2 => (2, 0),
@@ -164,9 +158,12 @@ impl Court {
                     if Player::is_pos_legal(mouse_pos, surrounding, self) {
                         self.players[clicked_player_index.0][clicked_player_index.1].pos.x = mouse_pos.0;
                         self.players[clicked_player_index.0][clicked_player_index.1].pos.y = mouse_pos.1;
+                        self.players[clicked_player_index.0][clicked_player_index.1].target.x = mouse_pos.0;
+                        self.players[clicked_player_index.0][clicked_player_index.1].target.y = mouse_pos.1;
                     }
 
                     self.draw_lines_to_surrounding(surrounding, clicked_player_index);
+                    self.draw_legal_area(surrounding);
                 }
                 None => {
                     for (y, line) in self.players.iter().enumerate() {
@@ -213,8 +210,39 @@ impl Court {
                 self.players[clicked_player_index.0][clicked_player_index.1].pos.x,
                 self.players[clicked_player_index.0][clicked_player_index.1].pos.y,
                 5.0,
-                BLACK,
+                color_u8!(0, 0, 0, 100),
             )
+        }
+    }
+
+    fn draw_legal_area(&self, surrounding: [Option<Vec2>; 4]) {
+        let mut top_left = self.pos.clone();
+        let mut bot_right = self.pos.clone() + self.size;
+
+        if let Some(left) = surrounding[0] {
+            top_left.x = left.x;
+        }
+        if let Some(right) = surrounding[1] {
+            bot_right.x = right.x;
+        }
+        if let Some(front) = surrounding[2] {
+            top_left.y = front.y;
+        }
+        if let Some(behind) = surrounding[3] {
+            bot_right.y = behind.y;
+        }
+
+        bot_right -= top_left;
+        draw_rectangle(top_left.x, top_left.y, bot_right.x, bot_right.y, color_u8!(255, 255, 255, 100));
+    }
+}
+
+impl Court {
+    pub fn move_players(&mut self) {
+        for line in self.players.iter_mut() {
+            for player in line {
+                player.move_player(self.size);
+            }
         }
     }
 }

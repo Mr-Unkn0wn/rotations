@@ -10,7 +10,9 @@ fn window_conf() -> Conf {
     Conf {
         window_title: "Rotation Visualisation".to_string(),
         window_resizable: false,
-        fullscreen: true,
+        fullscreen: false,
+        window_height: 650,
+        window_width: 800,
         ..Default::default()
     }
 }
@@ -29,6 +31,7 @@ async fn main() {
         interface::draw_ui(&mut court, offset, court_size);
         court.draw_court();
         court.handle_input();
+        court.move_players();
         court.draw_players();
 
         next_frame().await

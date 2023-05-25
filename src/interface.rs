@@ -4,9 +4,12 @@ use crate::court::Court;
 
 pub fn draw_ui(court: &mut Court, _offset: f32, _clearcourt_size: f32) {
     egui_macroquad::ui(|ctx| {
-        egui::Window::new("Rotations").resizable(false).show(ctx, |ui| {
-            rotation_grid(ui, court);
-        });
+        egui::Window::new("Rotations")
+            .anchor(Align2::RIGHT_TOP, egui::emath::vec2(-10.0, 10.0))
+            .resizable(false)
+            .show(ctx, |ui| {
+                rotation_grid(ui, court);
+            });
     });
     egui_macroquad::draw();
 }
@@ -29,7 +32,7 @@ fn rotation_grid(ui: &mut Ui, court: &mut Court) {
     });
 }
 
-fn rotation_selecter(ui: &mut Ui, rotation: u8, court: &mut Court) {
+fn rotation_selecter(ui: &mut Ui, rotation: i32, court: &mut Court) {
     if ui.add(egui::SelectableLabel::new(court.get_rotation() == rotation, rotation.to_string())).clicked() {
         court.set_rotation(rotation);
     }
