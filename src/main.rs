@@ -2,6 +2,7 @@ mod common_colors;
 mod court;
 mod interface;
 mod player;
+mod solutions;
 
 use court::Court;
 use macroquad::prelude::*;
@@ -19,20 +20,33 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf())]
 async fn main() {
+    let font = load_ttf_font_from_bytes(include_bytes!("../Anton-Regular.ttf")).unwrap();
     let court_size = screen_height() * 0.9;
     let offset = (screen_height() - court_size) / 2.0;
-    // let offset_x = screen_width() / 2.0 - court_height / 2.0;
+    let interface_width = screen_width() - offset * 2.0 - court_size;
 
     let mut court = Court::new(Vec2 { x: offset, y: offset }, court_size);
 
     loop {
         clear_background(Color::from_rgba(8, 115, 165, 255));
 
-        interface::draw_ui(&mut court, offset, court_size);
+        interface::draw_ui(&mut court, interface_width);
         court.draw_court();
         court.handle_input();
         court.move_players();
-        court.draw_players();
+        court.draw_solution();
+        court.draw_players(&font);
+
+        /*
+        for row in court.get_players() {
+            for player in row {
+                let pos = court.pixel_to_on_court_meters(player.pos);
+                print!("Vec2::new({:.1}, {:.1}), ", pos.x, pos.y);
+            }
+            println!("");
+        }
+        println!("");
+        */
 
         next_frame().await
     }

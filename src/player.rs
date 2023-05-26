@@ -1,11 +1,11 @@
 use macroquad::prelude::*;
 
-use crate::{common_colors::*, court::Court};
+use crate::court::Court;
 
 const RADIUS: f32 = 50.0;
 const MOVE_SPEED: f32 = 0.1; // per tick in meters
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Roles {
     Outside,
     Middle,
@@ -13,7 +13,24 @@ pub enum Roles {
     Setter,
 }
 
-#[derive(Clone, Copy)]
+impl Roles {
+    pub fn get_color(&self) -> Color {
+        match self {
+            Roles::Outside => color_u8!(0, 72, 110, 255),
+            Roles::Middle => color_u8!(214, 40, 40, 255),
+            Roles::Diagonal => color_u8!(247, 127, 0, 255),
+            Roles::Setter => color_u8!(252, 191, 73, 255),
+        }
+    }
+
+    pub fn get_dark_color(&self) -> Color {
+        let mut dark = Color::from_vec(self.get_color().to_vec() * 0.5);
+        dark.a = 1.0;
+        dark
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
 pub struct Player {
     pub role: Roles,
     pub pos: Vec2,
@@ -40,9 +57,9 @@ impl Player {
         self.pos += direction;
     }
 
-    pub fn draw_player(&self) {
-        draw_circle(self.pos.x, self.pos.y, RADIUS, BLACK);
-        draw_circle(self.pos.x, self.pos.y, RADIUS - 4.0, OFF_WHITE);
+    pub fn draw_player(&self, font: &Font) {
+        draw_circle(self.pos.x, self.pos.y, RADIUS, self.role.get_dark_color());
+        draw_circle(self.pos.x, self.pos.y, RADIUS - 4.0, self.role.get_color());
 
         let text = match self.role {
             Roles::Outside => "Außen",
@@ -51,10 +68,17 @@ impl Player {
             Roles::Setter => "Setter",
         };
 
-        let dim = measure_text(text, None, 20, 1.0);
+        //TEXT
+        let text_paras = TextParams {
+            font: *font,
+            font_size: 30,
+            color: WHITE,
+            ..Default::default()
+        };
+        let dim = measure_text(text, Some(text_paras.font), text_paras.font_size, text_paras.font_scale);
         let text_x = self.pos.x - dim.width / 2.0;
-        let text_y = self.pos.y - dim.height / 2.0;
-        draw_text(text, text_x, text_y, 20.0, BLACK);
+        let text_y = self.pos.y + dim.height / 2.0;
+        draw_text_ex(text, text_x, text_y, text_paras);
     }
 
     pub fn is_mouse_on_player(&self, mouse_pos: (f32, f32)) -> bool {

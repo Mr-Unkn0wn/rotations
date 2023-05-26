@@ -3,14 +3,15 @@ use macroquad::prelude::*;
 use crate::{
     common_colors,
     player::{Player, Roles},
+    solutions::Solutions,
 };
 
-const FOUR: Vec2 = Vec2::new(1.0, 2.0);
-const THREE: Vec2 = Vec2::new(4.5, 2.0);
-const TWO: Vec2 = Vec2::new(8.0, 2.0);
-const FIVE: Vec2 = Vec2::new(1.0, 6.0);
-const SIX: Vec2 = Vec2::new(4.5, 6.0);
-const ONE: Vec2 = Vec2::new(8.0, 6.0);
+pub const FOUR: Vec2 = Vec2::new(1.0, 2.0);
+pub const THREE: Vec2 = Vec2::new(4.5, 2.0);
+pub const TWO: Vec2 = Vec2::new(8.0, 2.0);
+pub const FIVE: Vec2 = Vec2::new(1.0, 6.0);
+pub const SIX: Vec2 = Vec2::new(4.5, 6.0);
+pub const ONE: Vec2 = Vec2::new(8.0, 6.0);
 
 const NUMBERS_ON_COURT: [Vec2; 6] = [ONE, TWO, THREE, FOUR, FIVE, SIX];
 
@@ -21,6 +22,7 @@ pub struct Court {
     players: [[Player; 3]; 2],
     clicked_player_index: Option<(usize, usize)>,
     positions_on_court: [Vec2; 6],
+    pub solutions: Solutions,
 }
 
 // CONSTRUCTOR, GETTERS AND SETTERS
@@ -44,6 +46,8 @@ impl Court {
             ],
         ];
 
+        let solutions = Solutions { show_solution: false };
+
         Court {
             pos,
             size,
@@ -51,7 +55,20 @@ impl Court {
             players,
             clicked_player_index: None,
             positions_on_court,
+            solutions,
         }
+    }
+
+    pub fn on_court_meters_to_pixel(&self, position: &Vec2) -> Vec2 {
+        self.pos + (*position / 9.0) * self.size
+    }
+
+    pub fn pixel_to_on_court_meters(&self, pos: Vec2) -> Vec2 {
+        (pos - self.pos) / self.size * 9.0
+    }
+
+    pub fn get_players(&self) -> [[Player; 3]; 2] {
+        self.players
     }
 
     pub fn get_pos(&self) -> Vec2 {
@@ -76,7 +93,7 @@ impl Court {
         // y - 1 - x - 1 % 6 = o
         let offset = ((self.rotation - 1) - (new_rotation - 1)).rem_euclid(6);
 
-        let mut players_backup = self.players.clone();
+        let mut players_backup = self.players;
 
         for (position, _role) in role_order.iter().enumerate() {
             let mut number = new_rotation + position as i32;
@@ -136,12 +153,16 @@ impl Court {
         );
     }
 
-    pub fn draw_players(&self) {
+    pub fn draw_players(&self, font: &Font) {
         for line in &self.players {
             for player in line {
-                player.draw_player();
+                player.draw_player(font);
             }
         }
+    }
+
+    pub fn draw_solution(&self) {
+        self.solutions.draw_solution(self);
     }
 }
 
@@ -216,8 +237,8 @@ impl Court {
     }
 
     fn draw_legal_area(&self, surrounding: [Option<Vec2>; 4]) {
-        let mut top_left = self.pos.clone();
-        let mut bot_right = self.pos.clone() + self.size;
+        let mut top_left = self.pos;
+        let mut bot_right = self.pos + self.size;
 
         if let Some(left) = surrounding[0] {
             top_left.x = left.x;
