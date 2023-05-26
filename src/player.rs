@@ -62,8 +62,8 @@ impl Player {
         draw_circle(self.pos.x, self.pos.y, RADIUS - 4.0, self.role.get_color());
 
         let text = match self.role {
-            Roles::Outside => "Außen",
-            Roles::Middle => "Mitte",
+            Roles::Outside => "Out",
+            Roles::Middle => "Middle",
             Roles::Diagonal => "Dia",
             Roles::Setter => "Setter",
         };

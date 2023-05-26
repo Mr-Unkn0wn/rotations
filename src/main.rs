@@ -1,4 +1,3 @@
-mod common_colors;
 mod court;
 mod interface;
 mod player;
@@ -24,7 +23,7 @@ async fn main() {
     let font = load_ttf_font_from_bytes(include_bytes!("../Anton-Regular.ttf")).unwrap();
     let court_size = screen_height() * 0.9;
     let offset = (screen_height() - court_size) / 2.0;
-    let interface_width = screen_width() - offset * 2.0 - court_size;
+    let interface_width = screen_width() - offset * 3.0 - court_size;
 
     let mut court = Court::new(Vec2 { x: offset, y: offset }, court_size);
     let mut solutions = Solutions {
@@ -35,7 +34,7 @@ async fn main() {
     loop {
         clear_background(Color::from_rgba(8, 115, 165, 255));
 
-        interface::draw_ui(&mut court, &mut solutions, interface_width);
+        interface::draw_ui(&mut court, &mut solutions, interface_width, offset);
         court.draw_court();
         court.handle_input();
         court.move_players();

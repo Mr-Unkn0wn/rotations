@@ -1,9 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::{
-    common_colors,
-    player::{Player, Roles},
-};
+use crate::player::{Player, Roles};
 
 pub const FOUR: Vec2 = Vec2::new(1.0, 2.0);
 pub const THREE: Vec2 = Vec2::new(4.5, 2.0);
@@ -136,7 +133,7 @@ impl Court {
 
         draw_rectangle(self.pos.x, self.pos.y, self.size, self.size, field_color);
 
-        draw_rectangle_lines(self.pos.x, self.pos.y, self.size, self.size, thickness, common_colors::OFF_WHITE);
+        draw_rectangle_lines(self.pos.x, self.pos.y, self.size, self.size, thickness, color_u8!(230, 230, 240, 255));
 
         draw_line(
             self.pos.x,
