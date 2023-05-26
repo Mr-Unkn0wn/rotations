@@ -3,7 +3,6 @@ use macroquad::prelude::*;
 use crate::{
     common_colors,
     player::{Player, Roles},
-    solutions::Solutions,
 };
 
 pub const FOUR: Vec2 = Vec2::new(1.0, 2.0);
@@ -22,7 +21,6 @@ pub struct Court {
     players: [[Player; 3]; 2],
     clicked_player_index: Option<(usize, usize)>,
     positions_on_court: [Vec2; 6],
-    pub solutions: Solutions,
 }
 
 // CONSTRUCTOR, GETTERS AND SETTERS
@@ -46,8 +44,6 @@ impl Court {
             ],
         ];
 
-        let solutions = Solutions { show_solution: false };
-
         Court {
             pos,
             size,
@@ -55,7 +51,6 @@ impl Court {
             players,
             clicked_player_index: None,
             positions_on_court,
-            solutions,
         }
     }
 
@@ -63,12 +58,12 @@ impl Court {
         self.pos + (*position / 9.0) * self.size
     }
 
-    pub fn pixel_to_on_court_meters(&self, pos: Vec2) -> Vec2 {
+    pub fn _pixel_to_on_court_meters(&self, pos: Vec2) -> Vec2 {
         (pos - self.pos) / self.size * 9.0
     }
 
-    pub fn get_players(&self) -> [[Player; 3]; 2] {
-        self.players
+    pub fn get_players(&mut self) -> &mut [[Player; 3]; 2] {
+        &mut self.players
     }
 
     pub fn get_pos(&self) -> Vec2 {
@@ -159,10 +154,6 @@ impl Court {
                 player.draw_player(font);
             }
         }
-    }
-
-    pub fn draw_solution(&self) {
-        self.solutions.draw_solution(self);
     }
 }
 

@@ -27,10 +27,11 @@ const CORRECT_POSITION_PER_ROTATION: [[[Vec2; 3]; 2]; 6] = [
 
 pub struct Solutions {
     pub show_solution: bool,
+    pub go_to_solution: bool,
 }
 
 impl Solutions {
-    pub fn draw_solution(&self, court: &Court) {
+    pub fn draw_solution(&self, court: &mut Court) {
         if !self.show_solution {
             return;
         }
@@ -48,6 +49,10 @@ impl Solutions {
                 draw_line(player_target.x, player_target.y, correct_target.x, correct_target.y, 5.0, role_color);
                 draw_circle(correct_target.x, correct_target.y, 10.0, dark_color);
                 draw_circle(correct_target.x, correct_target.y, 8.0, role_color);
+
+                if self.go_to_solution {
+                    court.get_players()[y][x].target = correct_target;
+                }
             }
         }
     }

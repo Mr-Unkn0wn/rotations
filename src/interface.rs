@@ -1,13 +1,13 @@
 use egui::*;
 
-use crate::court::Court;
+use crate::{court::Court, solutions::Solutions};
 
-pub fn draw_ui(court: &mut Court, width: f32) {
+pub fn draw_ui(court: &mut Court, solutions: &mut Solutions, width: f32) {
     egui_macroquad::ui(|ctx| {
         egui::SidePanel::right("Rotations").exact_width(width).show(ctx, |ui| {
             ui.label("Select Rotation");
             rotation_grid(ui, court);
-            next_prev_button(ui, court);
+            next_prev_button(ui, court, solutions);
             ui.separator();
         });
     });
@@ -32,7 +32,7 @@ fn rotation_grid(ui: &mut Ui, court: &mut Court) {
     });
 }
 
-fn next_prev_button(ui: &mut Ui, court: &mut Court) {
+fn next_prev_button(ui: &mut Ui, court: &mut Court, solutions: &mut Solutions) {
     ui.horizontal(|ui| {
         if ui.add(egui::Button::new("Prev")).clicked() {
             let mut rot = court.get_rotation() + 1;
@@ -49,7 +49,8 @@ fn next_prev_button(ui: &mut Ui, court: &mut Court) {
             court.set_rotation(rot);
         }
     });
-    ui.checkbox(&mut court.solutions.show_solution, "Show solution");
+    ui.checkbox(&mut solutions.show_solution, "Show solution");
+    ui.add_enabled(solutions.show_solution, egui::Checkbox::new(&mut solutions.go_to_solution, "Go to solution"));
 }
 
 fn rotation_selecter(ui: &mut Ui, rotation: i32, court: &mut Court) {
