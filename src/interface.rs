@@ -17,7 +17,7 @@ pub fn draw_ui(court: &mut Court, solutions: &mut Solutions, width: f32, offset:
                 ui.vertical_centered_justified(|ui| {
                     ui.label("Select Rotation");
                     rotation_grid(ui, court);
-                    next_prev_button(ui, court, solutions);
+                    next_prev_button(ui, court);
                     ui.separator();
                     ui.checkbox(&mut solutions.show_solution, "Show solution");
                     ui.add_enabled(solutions.show_solution, egui::Checkbox::new(&mut solutions.go_to_solution, "Go to solution"));
@@ -41,7 +41,7 @@ fn rotation_grid(ui: &mut Ui, court: &mut Court) {
     });
 }
 
-fn next_prev_button(ui: &mut Ui, court: &mut Court, solutions: &mut Solutions) {
+fn next_prev_button(ui: &mut Ui, court: &mut Court) {
     ui.horizontal(|ui| {
         if ui.add(egui::Button::new("Prev")).clicked() {
             let mut rot = court.get_rotation() + 1;

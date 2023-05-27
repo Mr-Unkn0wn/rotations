@@ -151,29 +151,37 @@ impl Court {
                 player.draw_player(font);
             }
         }
+
+        if let Some(clicked_player_index) = self.clicked_player_index {
+            let pos = self.players[clicked_player_index.0][clicked_player_index.1].pos;
+
+            draw_circle(pos.x, pos.y, crate::player::RADIUS - 4.0, color_u8!(100, 100, 200, 100));
+        }
     }
 }
 
 // INPUT METHODS
 impl Court {
     pub fn handle_input(&mut self) {
+        if !self.left_clicked() {
+            // self.right_clicked();
+        }
+        if let Some(clicked_player_index) = self.clicked_player_index {
+            let surrounding = self.get_surrounding_players(clicked_player_index);
+
+            let pos = self.players[clicked_player_index.0][clicked_player_index.1].pos;
+
+            self.draw_lines_to_surrounding(surrounding, clicked_player_index);
+            self.draw_legal_area(surrounding);
+        }
+    }
+
+    fn right_clicked(&mut self) {
         if is_mouse_button_down(MouseButton::Left) {
             let mouse_pos = mouse_position();
 
             match self.clicked_player_index {
-                Some(clicked_player_index) => {
-                    let surrounding = self.get_surrounding_players(clicked_player_index);
-
-                    if Player::is_pos_legal(mouse_pos, surrounding, self) {
-                        self.players[clicked_player_index.0][clicked_player_index.1].pos.x = mouse_pos.0;
-                        self.players[clicked_player_index.0][clicked_player_index.1].pos.y = mouse_pos.1;
-                        self.players[clicked_player_index.0][clicked_player_index.1].target.x = mouse_pos.0;
-                        self.players[clicked_player_index.0][clicked_player_index.1].target.y = mouse_pos.1;
-                    }
-
-                    self.draw_lines_to_surrounding(surrounding, clicked_player_index);
-                    self.draw_legal_area(surrounding);
-                }
+                Some(clicked_player_index) => {}
                 None => {
                     for (y, line) in self.players.iter().enumerate() {
                         for (x, player) in line.iter().enumerate() {
@@ -186,6 +194,38 @@ impl Court {
             }
         } else {
             self.clicked_player_index = None;
+        }
+    }
+
+    fn left_clicked(&mut self) -> bool {
+        if is_mouse_button_released(MouseButton::Left) {
+            let mouse_pos = mouse_position();
+
+            match self.clicked_player_index {
+                Some(clicked_player_index) => {
+                    let surrounding = self.get_surrounding_players(clicked_player_index);
+
+                    if Player::is_pos_legal(mouse_pos, surrounding, self) {
+                        self.players[clicked_player_index.0][clicked_player_index.1].target.x = mouse_pos.0;
+                        self.players[clicked_player_index.0][clicked_player_index.1].target.y = mouse_pos.1;
+                    }
+
+                    self.clicked_player_index = None;
+                }
+                None => {
+                    for (y, line) in self.players.iter().enumerate() {
+                        for (x, player) in line.iter().enumerate() {
+                            if player.is_mouse_on_player(mouse_pos) {
+                                self.clicked_player_index = Some((y, x));
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            true
+        } else {
+            false
         }
     }
 

@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 
 use crate::court::Court;
 
-const RADIUS: f32 = 50.0;
+pub(crate) const RADIUS: f32 = 50.0;
 const MOVE_SPEED: f32 = 0.1; // per tick in meters
 
 #[derive(Clone, Copy, Debug)]
@@ -35,11 +35,17 @@ pub struct Player {
     pub role: Roles,
     pub pos: Vec2,
     pub target: Vec2,
+    pub after_serve_target: Vec2,
 }
 
 impl Player {
     pub fn new(role: Roles, pos: Vec2) -> Player {
-        Player { role, pos, target: pos }
+        Player {
+            role,
+            pos,
+            target: pos,
+            after_serve_target: pos,
+        }
     }
 
     pub fn move_player(&mut self, size: f32) {
