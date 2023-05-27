@@ -35,16 +35,30 @@ pub struct Player {
     pub role: Roles,
     pub pos: Vec2,
     pub target: Vec2,
+    pub target_post_serve: Option<Vec2>,
 }
 
 impl Player {
     pub fn new(role: Roles, pos: Vec2) -> Player {
-        Player { role, pos, target: pos }
+        Player {
+            role,
+            pos,
+            target: pos,
+            target_post_serve: None,
+        }
     }
 
-    pub fn move_player(&mut self, size: f32) {
+    pub fn move_player(&mut self, size: f32, serve_played: bool) {
+        let goal = match serve_played {
+            false => self.target,
+            true => match self.target_post_serve {
+                None => self.target,
+                Some(t) => t,
+            },
+        };
+
         let speed_in_px = size * (MOVE_SPEED / 9.0);
-        let mut direction = self.target - self.pos;
+        let mut direction = goal - self.pos;
 
         if direction.length() > speed_in_px {
             direction = direction.normalize() * speed_in_px;
@@ -58,6 +72,11 @@ impl Player {
     }
 
     pub fn draw_player(&self, font: &Font) {
+        //TARGET
+        if let Some(t) = self.target_post_serve {
+            draw_line(self.pos.x, self.pos.y, t.x, t.y, 3.0, WHITE);
+        }
+        //CIRCLE
         draw_circle(self.pos.x, self.pos.y, RADIUS, self.role.get_dark_color());
         draw_circle(self.pos.x, self.pos.y, RADIUS - 4.0, self.role.get_color());
 
@@ -87,7 +106,7 @@ impl Player {
         mouse_pos_vec.distance(self.pos) <= RADIUS
     }
 
-    pub fn is_pos_legal(mouse_pos: (f32, f32), surrounding: [Option<Vec2>; 4], court: &Court) -> bool {
+    pub fn is_pos_on_court(mouse_pos: (f32, f32), court: &Court) -> bool {
         let x = mouse_pos.0;
         let y = mouse_pos.1;
 
@@ -97,6 +116,18 @@ impl Player {
         if y < court.get_pos().y || y > court.get_pos().y + court.get_size() {
             return false;
         }
+
+        true
+    }
+
+    pub fn is_pos_legal(mouse_pos: (f32, f32), surrounding: [Option<Vec2>; 4], court: &Court) -> bool {
+        let x = mouse_pos.0;
+        let y = mouse_pos.1;
+
+        if !Player::is_pos_on_court(mouse_pos, court) {
+            return false;
+        }
+
         if let Some(left) = surrounding[0] {
             if left.x >= x {
                 return false;

@@ -21,6 +21,8 @@ pub fn draw_ui(court: &mut Court, solutions: &mut Solutions, width: f32, offset:
                     ui.separator();
                     ui.checkbox(&mut solutions.show_solution, "Show solution");
                     ui.add_enabled(solutions.show_solution, egui::Checkbox::new(&mut solutions.go_to_solution, "Go to solution"));
+                    ui.separator();
+                    ui.checkbox(&mut court.serve_played, "Has serve been played");
                 });
             });
     });
@@ -49,6 +51,8 @@ fn next_prev_button(ui: &mut Ui, court: &mut Court, solutions: &mut Solutions) {
                 rot %= 6;
             }
             court.set_rotation(rot);
+            solutions.go_to_solution = false;
+            solutions.show_solution = false;
         }
         if ui.add(egui::Button::new("Next")).clicked() {
             let mut rot = court.get_rotation() - 1;
@@ -56,6 +60,8 @@ fn next_prev_button(ui: &mut Ui, court: &mut Court, solutions: &mut Solutions) {
                 rot = 6;
             }
             court.set_rotation(rot);
+            solutions.go_to_solution = false;
+            solutions.show_solution = false;
         }
     });
 }

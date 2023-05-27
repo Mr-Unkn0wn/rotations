@@ -18,6 +18,7 @@ pub struct Court {
     players: [[Player; 3]; 2],
     clicked_player_index: Option<(usize, usize)>,
     positions_on_court: [Vec2; 6],
+    pub serve_played: bool,
 }
 
 // CONSTRUCTOR, GETTERS AND SETTERS
@@ -48,6 +49,7 @@ impl Court {
             players,
             clicked_player_index: None,
             positions_on_court,
+            serve_played: false,
         }
     }
 
@@ -75,6 +77,7 @@ impl Court {
     pub fn set_rotation(&mut self, rotation: i32) {
         self.create_player_array(rotation);
         self.rotation = rotation;
+        self.serve_played = false;
     }
 
     fn create_player_array(&mut self, new_rotation: i32) {
@@ -102,6 +105,7 @@ impl Court {
 
             let old_index = Self::position_to_index(old_number);
             players_backup[old_index.1][old_index.0].target = self.positions_on_court[(number - 1) as usize];
+            players_backup[old_index.1][old_index.0].target_post_serve = None;
             self.players[index.1][index.0] = players_backup[old_index.1][old_index.0];
         }
     }
@@ -158,34 +162,62 @@ impl Court {
 impl Court {
     pub fn handle_input(&mut self) {
         if is_mouse_button_down(MouseButton::Left) {
-            let mouse_pos = mouse_position();
+            self.left_clicked();
+        } else if is_mouse_button_down(MouseButton::Right) {
+            self.right_clicked();
+        } else {
+            self.clicked_player_index = None;
+        }
+    }
 
-            match self.clicked_player_index {
-                Some(clicked_player_index) => {
-                    let surrounding = self.get_surrounding_players(clicked_player_index);
+    fn left_clicked(&mut self) {
+        let mouse_pos = mouse_position();
 
-                    if Player::is_pos_legal(mouse_pos, surrounding, self) {
-                        self.players[clicked_player_index.0][clicked_player_index.1].pos.x = mouse_pos.0;
-                        self.players[clicked_player_index.0][clicked_player_index.1].pos.y = mouse_pos.1;
-                        self.players[clicked_player_index.0][clicked_player_index.1].target.x = mouse_pos.0;
-                        self.players[clicked_player_index.0][clicked_player_index.1].target.y = mouse_pos.1;
-                    }
+        match self.clicked_player_index {
+            Some(clicked_player_index) => {
+                let surrounding = self.get_surrounding_players(clicked_player_index);
 
-                    self.draw_lines_to_surrounding(surrounding, clicked_player_index);
-                    self.draw_legal_area(surrounding);
+                if Player::is_pos_legal(mouse_pos, surrounding, self) {
+                    self.players[clicked_player_index.0][clicked_player_index.1].pos.x = mouse_pos.0;
+                    self.players[clicked_player_index.0][clicked_player_index.1].pos.y = mouse_pos.1;
+                    self.players[clicked_player_index.0][clicked_player_index.1].target.x = mouse_pos.0;
+                    self.players[clicked_player_index.0][clicked_player_index.1].target.y = mouse_pos.1;
                 }
-                None => {
-                    for (y, line) in self.players.iter().enumerate() {
-                        for (x, player) in line.iter().enumerate() {
-                            if player.is_mouse_on_player(mouse_pos) {
-                                self.clicked_player_index = Some((y, x));
-                            }
+
+                self.draw_lines_to_surrounding(surrounding, clicked_player_index);
+                self.draw_legal_area(surrounding);
+            }
+            None => {
+                for (y, line) in self.players.iter().enumerate() {
+                    for (x, player) in line.iter().enumerate() {
+                        if player.is_mouse_on_player(mouse_pos) {
+                            self.clicked_player_index = Some((y, x));
                         }
                     }
                 }
             }
-        } else {
-            self.clicked_player_index = None;
+        }
+    }
+
+    fn right_clicked(&mut self) {
+        let mouse_pos = mouse_position();
+
+        match self.clicked_player_index {
+            Some(clicked_player_index) => {
+                if Player::is_pos_on_court(mouse_pos, &self) {
+                    let player = &mut self.players[clicked_player_index.0][clicked_player_index.1];
+                    player.target_post_serve = Some(Vec2::new(mouse_pos.0, mouse_pos.1));
+                }
+            }
+            None => {
+                for (y, line) in self.players.iter().enumerate() {
+                    for (x, player) in line.iter().enumerate() {
+                        if player.is_mouse_on_player(mouse_pos) {
+                            self.clicked_player_index = Some((y, x));
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -250,7 +282,7 @@ impl Court {
     pub fn move_players(&mut self) {
         for line in self.players.iter_mut() {
             for player in line {
-                player.move_player(self.size);
+                player.move_player(self.size, self.serve_played);
             }
         }
     }
