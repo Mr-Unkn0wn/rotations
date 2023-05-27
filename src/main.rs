@@ -4,6 +4,7 @@ mod player;
 mod solutions;
 
 use court::Court;
+use interface::Interface;
 use macroquad::prelude::*;
 use solutions::Solutions;
 
@@ -13,7 +14,7 @@ fn window_conf() -> Conf {
         window_resizable: false,
         fullscreen: false,
         window_height: 650,
-        window_width: 900,
+        window_width: 1000,
         ..Default::default()
     }
 }
@@ -30,11 +31,12 @@ async fn main() {
         show_solution: false,
         go_to_solution: false,
     };
+    let mut interface = Interface::new(interface_width, offset);
 
     loop {
         clear_background(Color::from_rgba(8, 115, 165, 255));
 
-        interface::draw_ui(&mut court, &mut solutions, interface_width, offset);
+        interface.draw_ui(&mut court, &mut solutions);
         court.draw_court();
         court.handle_input();
         court.move_players();

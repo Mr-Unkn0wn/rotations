@@ -164,7 +164,7 @@ impl Court {
         if is_mouse_button_down(MouseButton::Left) {
             self.left_clicked();
         } else if is_mouse_button_down(MouseButton::Right) {
-            self.right_clicked();
+            // self.right_clicked();
         } else {
             self.clicked_player_index = None;
         }
