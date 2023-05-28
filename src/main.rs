@@ -12,9 +12,9 @@ fn window_conf() -> Conf {
     Conf {
         window_title: "Rotation Visualisation".to_string(),
         window_resizable: false,
-        fullscreen: false,
+        fullscreen: true,
         window_height: 650,
-        window_width: 1000,
+        window_width: 1920,
         ..Default::default()
     }
 }
