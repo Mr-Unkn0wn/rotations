@@ -23,11 +23,10 @@
     <h1>
         HELLO
     </h1>
-    <script>
-        WebAssembly.instantiateStreaming(
-            fetch('rotations.wasm')
-        );
-    </script>
+    <canvas id="glcanvas" tabindex='1'></canvas>
+    <script src="https://not-fl3.github.io/miniquad-samples/gl.js"></script>
+    <!-- gl.js from miniquad repo (native/sapp-wasm/js/gl.js) -->
+    <script>load("rotations.wasm");</script> <!-- Your compiled wasm file -->
 </body>
 
 </html>
